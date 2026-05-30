@@ -38,6 +38,7 @@ git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
 
 # https://grapheneos.org/build#browser-and-webview
 rm -rf $SCRIPT_DIR/vanadium/patches/*trichrome-{apk-build-targets,browser-apk-targets}.patch
+rm -rf $SCRIPT_DIR/vanadium/patches/*{detailed,supported}-language*.patch
 replace "$SCRIPT_DIR/vanadium/patches" "VANADIUM" "HELIUM"
 replace "$SCRIPT_DIR/vanadium/patches" "Vanadium" "Helium"
 replace "$SCRIPT_DIR/vanadium/patches" "vanadium" "helium"
@@ -61,9 +62,12 @@ sed -i '/feature_overrides.EnableFeature(::features::kVulkanFromANGLE);/d' chrom
 sed -i '/feature_overrides.EnableFeature(::features::kDefaultPassthroughCommandDecoder);/d' chrome/browser/chrome_browser_field_trials.cc
 
 # dev
-sed -i 's/BASE_FEATURE(kAndroidDevToolsFrontend, base::FEATURE_DISABLED_BY_DEFAULT);/BASE_FEATURE(kAndroidDevToolsFrontend, base::FEATURE_ENABLED_BY_DEFAULT);/' content/public/common/content_features.cc
 sed -i 's/BASE_FEATURE(kSubmenusInAppMenu, base::FEATURE_DISABLED_BY_DEFAULT);/BASE_FEATURE(kSubmenusInAppMenu, base::FEATURE_ENABLED_BY_DEFAULT);/' chrome/browser/flags/android/chrome_feature_list.cc
+sed -i 's/BASE_FEATURE(kAndroidDevToolsFrontend, base::FEATURE_DISABLED_BY_DEFAULT);/BASE_FEATURE(kAndroidDevToolsFrontend, base::FEATURE_ENABLED_BY_DEFAULT);/' content/public/common/content_features.cc
 sed -i 's|if (!DeviceFormFactor.isNonMultiDisplayContextOnTablet(mContext)) {|if (false) {|' chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedAppMenuPropertiesDelegate.java
+
+# search
+sed -i 's|BASE_FEATURE(kOmniboxSiteSearch, DISABLED);|BASE_FEATURE(kOmniboxSiteSearch, ENABLED);|' components/omnibox/common/omnibox_features.cc
 
 # playback
 sed -i 's|#if BUILDFLAG(IS_ANDROID)|#if 0|' content/public/renderer/render_frame_media_playback_options.cc
@@ -104,16 +108,7 @@ sed -i 's|public static boolean shouldOpenIncognitoAsWindow() {|public static bo
 
 # tmp
 sed -i 's|if (!IncognitoUtils.shouldOpenIncognitoAsWindow() \|\| isIncognitoShowing()) {|if (true) {|' chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedAppMenuPropertiesDelegate.java
-sed -i '/^template("chrome_public_apk_or_module_tmpl") {$/,/^}$/{
-  /^    if (!defined(srcjar_deps)) {$/,/^    \]$/d
-  /^  }$/i\
-    if (!defined(srcjar_deps)) {\
-      srcjar_deps = []\
-    }\
-    srcjar_deps += [\
-      "//helium/android_config:configinfo_srcjar_apk",\
-    ]
-}' chrome/android/chrome_public_apk_tmpl.gni # vanadium/patches/*-ConfigInfo-*.patch
+sed -i 's/BASE_FEATURE(kAndroidSearchInSettings,"SearchInSettings", base::FEATURE_DISABLED_BY_DEFAULT);/BASE_FEATURE(kAndroidSearchInSettings,"SearchInSettings", base::FEATURE_ENABLED_BY_DEFAULT);/' chrome/browser/flags/android/chrome_feature_list.cc
 
 cat > out/Default/args.gn <<EOF
 chrome_public_manifest_package = "io.github.jqssun.helium"
